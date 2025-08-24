@@ -61,7 +61,7 @@ A modern, AI-enhanced file management application inspired by SparkleShare, feat
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/fileinasnap_minimax.git
+   git clone https://github.com/Greenmamba29/fileinasnap_minimax.git
    cd fileinasnap_minimax
    ```
 
@@ -203,8 +203,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/fileinasnap_minimax/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/fileinasnap_minimax/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Greenmamba29/fileinasnap_minimax/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Greenmamba29/fileinasnap_minimax/discussions)
 - **Email**: support@fileinasnap.com
 
 ---
