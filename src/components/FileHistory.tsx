@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase, FileRecord } from '../lib/supabase';
 import { colors } from '../lib/design-system';
@@ -67,18 +67,20 @@ function HistoryItem({ entry, isLatest }: HistoryItemProps) {
         return t('changeTypes.created', { name: base });
       case 'modified':
         return t('changeTypes.modified', { name: base });
-      case 'renamed':
+      case 'renamed': {
         const oldName = entry.previous_values?.name;
         const newName = entry.new_values?.name;
         return oldName && newName ? 
           t('changeTypes.renamed', { oldName, newName }) : 
           t('changeTypes.renamedSimple', { name: base });
-      case 'moved':
+      }
+      case 'moved': {
         const oldPath = entry.previous_values?.path;
         const newPath = entry.new_values?.path;
         return oldPath && newPath ? 
           t('changeTypes.moved', { oldPath, newPath }) : 
           t('changeTypes.movedSimple', { name: base });
+      }
       case 'metadata_changed':
         return t('changeTypes.metadataChanged', { name: base });
       case 'tags_changed':
@@ -213,7 +215,7 @@ export function FileHistory() {
     if (selectedFile) {
       fetchFileHistory(selectedFile);
     }
-  }, [selectedFile]);
+  }, [selectedFile, fetchFileHistory]);
 
   async function fetchFiles() {
     try {
@@ -240,7 +242,7 @@ export function FileHistory() {
     setLoading(false);
   }
 
-  async function fetchFileHistory(fileId: string) {
+  const fetchFileHistory = useCallback(async (fileId: string) => {
     try {
       const { data, error } = await supabase
         .from('file_versions')
@@ -284,7 +286,7 @@ export function FileHistory() {
       console.error('Error fetching file history:', error);
       setHistoryEntries([]);
     }
-  }
+  }, [files]);
 
   return (
     <div className="space-y-6">

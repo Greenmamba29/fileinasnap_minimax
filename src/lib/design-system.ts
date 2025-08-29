@@ -7,7 +7,10 @@ export const colors = {
     teal: '#16a085',
     gray: '#95a5a6',
     lightGray: '#ecf0f1',
-    darkGray: '#34495e'
+    darkGray: '#34495e',
+    green: '#27ae60',
+    purple: '#9b59b6',
+    orange: '#e67e22'
   },
   // Status colors
   status: {
@@ -17,6 +20,18 @@ export const colors = {
     info: '#3498db'
   },
   // Semantic colors
+  semantic: {
+    success: '#27ae60',
+    warning: '#f39c12',
+    error: '#e74c3c',
+    info: '#3498db'
+  },
+  // Border colors
+  border: {
+    primary: '#e1e8ed',
+    secondary: '#d1d9e0',
+    accent: '#bdc3c7'
+  },
   background: {
     primary: '#ffffff',
     secondary: '#f8f9fa',

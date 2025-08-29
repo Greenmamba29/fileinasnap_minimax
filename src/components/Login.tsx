@@ -211,3 +211,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     </div>
   );
 }
+
+// Default export for router lazy loading
+export default LoginForm;

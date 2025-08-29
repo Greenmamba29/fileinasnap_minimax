@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase, FileRecord } from '../lib/supabase';
 import { colors } from '../lib/design-system';
@@ -305,9 +305,9 @@ export function MediaInsights() {
 
   useEffect(() => {
     fetchMediaFiles();
-  }, [filter]);
+  }, [filter, fetchMediaFiles]);
 
-  async function fetchMediaFiles() {
+  const fetchMediaFiles = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('files')
@@ -328,7 +328,7 @@ export function MediaInsights() {
     }
     
     setLoading(false);
-  }
+  }, [filter]);
 
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('image/')) return <Image size={20} color={colors.primary.teal} />;

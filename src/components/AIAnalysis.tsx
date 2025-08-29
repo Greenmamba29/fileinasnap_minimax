@@ -35,8 +35,8 @@ export const AIAnalysis: React.FC<AIAnalysisProps> = ({
 
     try {
       let content = fileContent;
-      let name = fileName || file?.name || 'unknown';
-      let type = mimeType || file?.type;
+      const name = fileName || file?.name || 'unknown';
+      const type = mimeType || file?.type;
 
       // Extract content from file if needed
       if (file && !content && type?.startsWith('text/')) {

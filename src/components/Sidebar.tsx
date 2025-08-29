@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { colors } from '../lib/design-system';
+import { useMobileNavigation } from '../hooks/useMobileNavigation';
 import { 
   FolderOpen,
   Image,
@@ -17,7 +19,8 @@ import {
   Search,
   FolderTree,
   Copy,
-  FileSearch
+  FileSearch,
+  X
 } from 'lucide-react';
 
 interface SmartFolder {
@@ -27,17 +30,19 @@ interface SmartFolder {
   icon_name: string;
   color_scheme: string;
   file_count: number;
+  path: string;
 }
 
 interface SidebarProps {
   isOpen: boolean;
-  activeSection: string;
-  onSectionChange: (section: string) => void;
+  onClose?: () => void;
 }
 
-export function Sidebar({ isOpen, activeSection, onSectionChange }: SidebarProps) {
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [folders, setFolders] = useState<SmartFolder[]>([]);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const { isMobile } = useMobileNavigation();
 
   useEffect(() => {
     fetchSmartFolders();
@@ -52,7 +57,8 @@ export function Sidebar({ isOpen, activeSection, onSectionChange }: SidebarProps
         folder_type: 'documents',
         icon_name: 'smart-folder-documents',
         color_scheme: colors.primary.blue,
-        file_count: 0
+        file_count: 0,
+        path: '/folders/documents'
       },
       {
         id: '2', 
@@ -60,7 +66,8 @@ export function Sidebar({ isOpen, activeSection, onSectionChange }: SidebarProps
         folder_type: 'media',
         icon_name: 'smart-folder-media', 
         color_scheme: colors.primary.teal,
-        file_count: 0
+        file_count: 0,
+        path: '/folders/media'
       },
       {
         id: '3',
@@ -68,7 +75,8 @@ export function Sidebar({ isOpen, activeSection, onSectionChange }: SidebarProps
         folder_type: 'projects',
         icon_name: 'smart-folder-projects',
         color_scheme: colors.primary.darkBlue,
-        file_count: 0
+        file_count: 0,
+        path: '/folders/projects'
       },
       {
         id: '4',
@@ -76,7 +84,8 @@ export function Sidebar({ isOpen, activeSection, onSectionChange }: SidebarProps
         folder_type: 'archive', 
         icon_name: 'smart-folder-archive',
         color_scheme: colors.primary.gray,
-        file_count: 0
+        file_count: 0,
+        path: '/folders/archive'
       }
     ];
     
@@ -102,63 +111,118 @@ export function Sidebar({ isOpen, activeSection, onSectionChange }: SidebarProps
   };
 
   const navigationSections = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, color: colors.primary.blue },
-    { id: 'insights', label: 'Media Insights', icon: Lightbulb, color: colors.primary.teal },
-    { id: 'history', label: 'File History', icon: History, color: colors.primary.darkBlue },
-    { id: 'activity', label: 'Activity Feed', icon: Activity, color: colors.status.success }
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, color: colors.primary.blue, path: '/' }
   ];
 
   const aiSections = [
-    { id: 'ai-dashboard', label: 'AI Dashboard', icon: Brain, color: '#8B5CF6' },
-    { id: 'ai-analysis', label: 'AI Analysis', icon: Sparkles, color: '#06B6D4' },
-    { id: 'smart-organizer', label: 'Smart Organizer', icon: FolderTree, color: '#10B981' },
-    { id: 'duplicate-detector', label: 'Duplicate Detector', icon: Copy, color: '#F59E0B' },
-    { id: 'smart-tagger', label: 'Smart Tagger', icon: Tags, color: '#EF4444' }
+    { id: 'ai-analysis', label: 'AI Analysis', icon: Sparkles, color: '#06B6D4', path: '/ai-analysis' },
+    { id: 'smart-organizer', label: 'Smart Organizer', icon: FolderTree, color: '#10B981', path: '/smart-organizer' },
+    { id: 'duplicate-detector', label: 'Duplicate Detector', icon: Copy, color: '#F59E0B', path: '/duplicate-detector' },
+    { id: 'smart-tagger', label: 'Smart Tagger', icon: Tags, color: '#EF4444', path: '/smart-tagger' }
   ];
+
+  // Common link style function
+  const getLinkClassName = (isActive: boolean, variant: 'primary' | 'ai' = 'primary') => {
+    const base = 'w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left';
+    
+    if (isActive) {
+      if (variant === 'ai') {
+        return `${base} bg-purple-50 text-purple-700`;
+      }
+      return `${base} bg-blue-50 text-blue-700`;
+    }
+    
+    return `${base} hover:bg-gray-50`;
+  };
+
+  // Handle mobile close on navigation
+  const handleMobileNavigation = () => {
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
 
   if (!isOpen) {
     return (
-      <div className="w-16 bg-white border-r h-full flex flex-col py-4">
+      <div 
+        className="w-16 bg-white border-r h-full flex flex-col py-4"
+        data-sidebar
+        style={{ borderColor: colors.border.primary }}
+      >
         {/* Regular Navigation */}
         {navigationSections.map((section) => {
           const Icon = section.icon;
+          const isActive = location.pathname === section.path;
+          
           return (
-            <button
+            <NavLink
               key={section.id}
-              onClick={() => onSectionChange(section.id)}
-              className={`p-3 mx-2 rounded-lg transition-colors ${
-                activeSection === section.id ? 'bg-blue-50' : 'hover:bg-gray-50'
-              }`}
+              to={section.path}
+              onClick={handleMobileNavigation}
+              className={({ isActive }) => `
+                p-3 mx-2 rounded-lg transition-colors ${
+                  isActive ? 'bg-blue-50' : 'hover:bg-gray-50'
+                }
+              `}
               title={section.label}
             >
               <Icon 
                 size={20} 
-                color={activeSection === section.id ? colors.primary.blue : colors.text.secondary}
+                color={isActive ? colors.primary.blue : colors.text.secondary}
               />
-            </button>
+            </NavLink>
           );
         })}
         
         {/* Divider */}
-        <div className="mx-3 my-2 border-t" style={{ borderColor: colors.primary.lightGray }}></div>
+        <div className="mx-3 my-2 border-t" style={{ borderColor: colors.border.primary }}></div>
         
         {/* AI Navigation */}
         {aiSections.map((section) => {
           const Icon = section.icon;
+          const isActive = location.pathname === section.path;
+          
           return (
-            <button
+            <NavLink
               key={section.id}
-              onClick={() => onSectionChange(section.id)}
-              className={`p-3 mx-2 rounded-lg transition-colors ${
-                activeSection === section.id ? 'bg-purple-50' : 'hover:bg-gray-50'
-              }`}
+              to={section.path}
+              onClick={handleMobileNavigation}
+              className={({ isActive }) => `
+                p-3 mx-2 rounded-lg transition-colors ${
+                  isActive ? 'bg-purple-50' : 'hover:bg-gray-50'
+                }
+              `}
               title={section.label}
             >
               <Icon 
                 size={20} 
-                color={activeSection === section.id ? section.color : colors.text.secondary}
+                color={isActive ? section.color : colors.text.secondary}
               />
-            </button>
+            </NavLink>
+          );
+        })}
+        
+        {/* Divider */}
+        <div className="mx-3 my-2 border-t" style={{ borderColor: colors.border.primary }}></div>
+        
+        {/* Folder Navigation (Icons Only) */}
+        {folders.slice(0, 3).map((folder) => {
+          const isActive = location.pathname === folder.path;
+          
+          return (
+            <NavLink
+              key={folder.id}
+              to={folder.path}
+              onClick={handleMobileNavigation}
+              className={({ isActive }) => `
+                p-3 mx-2 rounded-lg transition-colors ${
+                  isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
+                }
+              `}
+              title={folder.name}
+            >
+              {getIconComponent(folder.icon_name, isActive ? folder.color_scheme : colors.text.secondary)}
+            </NavLink>
           );
         })}
       </div>
@@ -167,9 +231,44 @@ export function Sidebar({ isOpen, activeSection, onSectionChange }: SidebarProps
 
   return (
     <div 
-      className="w-64 bg-white border-r h-full flex flex-col"
-      style={{ borderColor: colors.primary.lightGray }}
+      className={`
+        ${isMobile ? 'fixed inset-y-0 left-0 z-50' : 'relative'}
+        w-64 bg-white border-r h-full flex flex-col
+        ${isMobile ? 'shadow-lg' : ''}
+      `}
+      style={{ borderColor: colors.border.primary }}
+      data-sidebar
     >
+      {/* Mobile Header */}
+      {isMobile && (
+        <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: colors.border.primary }}>
+          <div className="flex items-center space-x-2">
+            <div 
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: colors.primary.blue }}
+            >
+              <img 
+                src="/icons/logo-fileinasnap.png" 
+                alt="FileInASnap" 
+                className="w-5 h-5 filter brightness-0 invert"
+              />
+            </div>
+            <span className="font-semibold" style={{ color: colors.text.primary }}>
+              FileInASnap
+            </span>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-gray-100"
+              aria-label="Close sidebar"
+            >
+              <X size={20} style={{ color: colors.text.secondary }} />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Navigation Sections */}
       <div className="p-4">
         <h2 
@@ -181,36 +280,36 @@ export function Sidebar({ isOpen, activeSection, onSectionChange }: SidebarProps
         <nav className="space-y-1">
           {navigationSections.map((section) => {
             const Icon = section.icon;
-            const isActive = activeSection === section.id;
             
             return (
-              <button
+              <NavLink
                 key={section.id}
-                onClick={() => onSectionChange(section.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                  isActive 
-                    ? 'bg-blue-50 text-blue-700' 
-                    : 'hover:bg-gray-50'
-                }`}
+                to={section.path}
+                onClick={handleMobileNavigation}
+                className={({ isActive }) => getLinkClassName(isActive)}
               >
-                <Icon 
-                  size={18} 
-                  color={isActive ? colors.primary.blue : colors.text.secondary}
-                />
-                <span 
-                  className="text-sm font-medium"
-                  style={{ color: isActive ? colors.primary.blue : colors.text.primary }}
-                >
-                  {section.label}
-                </span>
-              </button>
+                {({ isActive }) => (
+                  <>
+                    <Icon 
+                      size={18} 
+                      color={isActive ? colors.primary.blue : colors.text.secondary}
+                    />
+                    <span 
+                      className="text-sm font-medium"
+                      style={{ color: isActive ? colors.primary.blue : colors.text.primary }}
+                    >
+                      {section.label}
+                    </span>
+                  </>
+                )}
+              </NavLink>
             );
           })}
         </nav>
       </div>
 
       {/* AI Tools */}
-      <div className="p-4 border-t" style={{ borderColor: colors.primary.lightGray }}>
+      <div className="p-4 border-t" style={{ borderColor: colors.border.primary }}>
         <h2 
           className="text-sm font-semibold mb-3 flex items-center"
           style={{ color: colors.text.secondary }}
@@ -221,37 +320,37 @@ export function Sidebar({ isOpen, activeSection, onSectionChange }: SidebarProps
         <nav className="space-y-1">
           {aiSections.map((section) => {
             const Icon = section.icon;
-            const isActive = activeSection === section.id;
             
             return (
-              <button
+              <NavLink
                 key={section.id}
-                onClick={() => onSectionChange(section.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                  isActive 
-                    ? 'bg-purple-50 text-purple-700' 
-                    : 'hover:bg-gray-50'
-                }`}
+                to={section.path}
+                onClick={handleMobileNavigation}
+                className={({ isActive }) => getLinkClassName(isActive, 'ai')}
               >
-                <Icon 
-                  size={18} 
-                  color={isActive ? section.color : colors.text.secondary}
-                />
-                <span 
-                  className="text-sm font-medium flex items-center"
-                  style={{ color: isActive ? section.color : colors.text.primary }}
-                >
-                  {section.label}
-                  <Sparkles size={12} className="ml-1 opacity-60" />
-                </span>
-              </button>
+                {({ isActive }) => (
+                  <>
+                    <Icon 
+                      size={18} 
+                      color={isActive ? section.color : colors.text.secondary}
+                    />
+                    <span 
+                      className="text-sm font-medium flex items-center"
+                      style={{ color: isActive ? section.color : colors.text.primary }}
+                    >
+                      {section.label}
+                      <Sparkles size={12} className="ml-1 opacity-60" />
+                    </span>
+                  </>
+                )}
+              </NavLink>
             );
           })}
         </nav>
       </div>
 
       {/* Smart Folders */}
-      <div className="p-4 border-t" style={{ borderColor: colors.primary.lightGray }}>
+      <div className="p-4 border-t" style={{ borderColor: colors.border.primary }}>
         <h2 
           className="text-sm font-semibold mb-3"
           style={{ color: colors.text.secondary }}
@@ -267,34 +366,56 @@ export function Sidebar({ isOpen, activeSection, onSectionChange }: SidebarProps
           </div>
         ) : (
           <div className="space-y-1">
-            {folders.map((folder) => (
-              <button
-                key={folder.id}
-                className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                onClick={() => onSectionChange(`folder-${folder.folder_type}`)}
-              >
-                <div className="flex items-center space-x-3">
-                  {getIconComponent(folder.icon_name, folder.color_scheme)}
-                  <span 
-                    className="text-sm font-medium"
-                    style={{ color: colors.text.primary }}
-                  >
-                    {folder.name}
-                  </span>
-                </div>
-                <span 
-                  className="text-xs px-2 py-1 rounded-full"
-                  style={{ 
-                    backgroundColor: `${folder.color_scheme}15`,
-                    color: folder.color_scheme
-                  }}
+            {folders.map((folder) => {
+              const isActive = location.pathname === folder.path;
+              
+              return (
+                <NavLink
+                  key={folder.id}
+                  to={folder.path}
+                  onClick={handleMobileNavigation}
+                  className={({ isActive }) => `
+                    w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                      isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
+                    }
+                  `}
                 >
-                  {folder.file_count}
-                </span>
-              </button>
-            ))}
+                  <div className="flex items-center space-x-3">
+                    {getIconComponent(
+                      folder.icon_name, 
+                      isActive ? folder.color_scheme : colors.text.secondary
+                    )}
+                    <span 
+                      className="text-sm font-medium"
+                      style={{ 
+                        color: isActive ? folder.color_scheme : colors.text.primary 
+                      }}
+                    >
+                      {folder.name}
+                    </span>
+                  </div>
+                  <span 
+                    className="text-xs px-2 py-1 rounded-full"
+                    style={{ 
+                      backgroundColor: `${folder.color_scheme}15`,
+                      color: folder.color_scheme
+                    }}
+                  >
+                    {folder.file_count}
+                  </span>
+                </NavLink>
+              );
+            })}
           </div>
         )}
+      </div>
+
+      {/* Footer */}
+      <div className="mt-auto p-4 border-t" style={{ borderColor: colors.border.primary }}>
+        <div className="text-xs" style={{ color: colors.text.muted }}>
+          <p>FileInASnap v1.0</p>
+          <p>Intelligent File Management</p>
+        </div>
       </div>
     </div>
   );
